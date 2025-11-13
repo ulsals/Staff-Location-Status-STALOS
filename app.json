@@ -4,7 +4,7 @@
     "slug": "STALOS",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/stalosIcon.jpg",
     "scheme": "stalos",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
