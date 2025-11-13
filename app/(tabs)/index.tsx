@@ -1,98 +1,152 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const API_URL = "http://spidah.my.id/dimana.php";
+
+interface LocationData {
+  status: string;
+  updatedAt: string;
+  location: string;
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [data, setData] = useState<LocationData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+      const result = await response.json();
+      setData(result);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const formatDate = (str: string) =>
+    `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)} ${str.slice(8, 10)}:${str.slice(10, 12)}`;
+
+  const getLocationEmoji = (loc: string) => {
+    switch (loc) {
+      case "Kampus Palembang":
+        return "🏢";
+      case "Kampus Inderalaya":
+        return "🏣";
+      default:
+        return "🚗";
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>📍 STALOS</Text>
+      <Text style={styles.subtitle}>Status Lokasi Kepala Jurusan TI</Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="rgba(20, 20, 30, 1)" />
+      ) : error ? (
+        <Text style={styles.error}>❌ Gagal memuat data: {error}</Text>
+      ) : data ? (
+        <View style={styles.card}>
+          <Text style={styles.locationEmoji}>{getLocationEmoji(data.location)}</Text>
+
+          <Text style={styles.label}>Lokasi Saat Ini:</Text>
+          <Text style={styles.value}>{data.location}</Text>
+
+          <Text style={styles.label}>Status Sistem:</Text>
+          <Text style={[styles.value, data.status === "OK" ? styles.ok : styles.errorText]}>
+            {data.status}
+          </Text>
+
+          <Text style={styles.label}>Diperbarui:</Text>
+          <Text style={styles.value}>{formatDate(data.updatedAt)}</Text>
+        </View>
+      ) : (
+        <Text style={styles.info}>Tidak ada data.</Text>
+      )}
+
+      <TouchableOpacity style={styles.button} onPress={fetchData}>
+        <Text style={styles.buttonText}>🔄 Perbarui Data</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#f4f8fc",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "rgba(20, 20, 30, 1)",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 20,
+    width: "100%",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    marginBottom: 20,
+  },
+  locationEmoji: {
+    fontSize: 48,
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 16,
+    color: "#777",
+  },
+  value: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 10,
+  },
+  ok: {
+    color: "green",
+  },
+  errorText: {
+    color: "red",
+  },
+  button: {
+    backgroundColor: "rgba(20, 20, 30, 1)",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  info: {
+    color: "#555",
+  },
+  error: {
+    color: "red",
+    textAlign: "center",
   },
 });
