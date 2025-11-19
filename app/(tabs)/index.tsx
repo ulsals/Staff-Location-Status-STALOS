@@ -43,6 +43,17 @@ function StaffDashboardScreen() {
     );
   }
 
+  const getLocationEmoji = (loc: string): string => {
+      switch (loc) {
+      case "Kampus Palembang":
+      return "🏢";
+      case "Kampus Indralaya":
+      return "🏨";
+      default:
+      return "🚗";
+      }
+  };
+
   // Format tanggal agar lebih menarik (Contoh: "13 Nov 2025, 10:30")
   const formattedDate = staffLocation?.updatedAt
     ? new Date(
@@ -82,8 +93,15 @@ function StaffDashboardScreen() {
           ]}
         >
           <ThemedText type="title" style={styles.headerTitle}>
-            STALOS Dashboard
+            STALOS 
           </ThemedText>
+
+          <ThemedText style={styles.locationText}> 
+            Status Lokasi Kepala Jurusan TI 
+          </ThemedText>
+
+          <ThemedText style={styles.getLocationEmoji}>{getLocationEmoji(staffLocation?.location || "")}</ThemedText>
+
           <ThemedText style={styles.locationText}>
             📍 Lokasi: {staffLocation?.location || "Tidak diketahui"}
           </ThemedText>
@@ -129,5 +147,10 @@ const styles = StyleSheet.create({
   locationText: {
     marginVertical: 8,
     fontSize: 16,
+  },
+  getLocationEmoji: {
+    fontSize: 48,
+    marginVertical: 8,
+    textAlign: "center",
   },
 });

@@ -25,6 +25,7 @@ export default function TabLayout() {
         options={{
           title: "Dashboard",
           headerTitle: "STALOS Dashboard",
+
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "people" : "people-outline"}
